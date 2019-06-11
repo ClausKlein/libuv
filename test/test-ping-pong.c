@@ -38,7 +38,7 @@ static int completed_pingers = 0;
 /* 64 bytes is enough for a pinger */
 #define BUFSIZE 1024
 
-#undef USE_ORIG_CODE_ONLY
+#define USE_ORIG_CODE_ONLY
 #ifdef USE_ORIG_CODE_ONLY
 static char PING[] = "PING\n";
 #else

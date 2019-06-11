@@ -122,7 +122,7 @@ int uv_tcp_init_ex(uv_loop_t* loop, uv_tcp_t* tcp, unsigned int flags) {
   if (flags & ~0xFF)
     return UV_EINVAL;
 
-  assert(sizeof(uv_stream_t) == sizeof(uv_tcp_t));
+  STATIC_ASSERT(sizeof(uv_stream_t) == sizeof(uv_tcp_t));
   uv__stream_init(loop, (uv_stream_t*)tcp, UV_TCP);
 
   /* If anything fails beyond this point we need to remove the handle from

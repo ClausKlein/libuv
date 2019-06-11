@@ -5,10 +5,9 @@
 
 #define DEFAULT_PORT 9123
 #define DEFAULT_BACKLOG 128
+#define DEFAULT_TIMEOUT 10000
 #define USE_TIMER
 
-
-static uv_loop_t *loop;
 
 typedef struct {
     uv_timer_t *timer_handle;
@@ -32,8 +31,12 @@ void on_close(uv_handle_t *handle) {
 #ifdef USE_TIMER
     if (handle->data) {
         uv_timer_t *timer_handle = handle->data;
-        uv_timer_stop(timer_handle);
-        free(timer_handle);
+        if ((timer_handle->type == UV_TIMER)
+            && (uv_is_active((uv_handle_t *)timer_handle))) {
+            uv_timer_stop(timer_handle);
+            uv_close((uv_handle_t *)timer_handle, on_close);
+        }
+        timer_handle->data = NULL;
     }
 #endif
     free(handle);
@@ -41,10 +44,10 @@ void on_close(uv_handle_t *handle) {
 
 void on_timeout(uv_timer_t *handle) {
     uv_buf_t buf;
-    buf.base = "\0";
-    buf.len  = 0;
+    buf.base            = "\0";
+    buf.len             = 0;
     uv_stream_t *client = (uv_stream_t *)handle->data;
-    int r    = uv_try_write(client, &buf, 1);
+    int r               = uv_try_write(client, &buf, 1);
     if (r < 0) {
         fprintf(
             stderr, "on_timeout() uv_try_write error: %s\n", uv_err_name(r));
@@ -68,7 +71,7 @@ void echo_write(uv_write_t *req, int status) {
 
 void echo_read(uv_stream_t *client, ssize_t nread, const uv_buf_t *buf) {
     if (nread > 0) {
-        write_req_t *req  = calloc(1, sizeof(write_req_t));
+        write_req_t *req  = malloc(sizeof(write_req_t));
         req->buf          = uv_buf_init(buf->base, nread);
         req->timer_handle = client->data;
         uv_write((uv_write_t *)req, client, &req->buf, 1, echo_write);
@@ -89,18 +92,19 @@ void on_new_connection(uv_stream_t *server, int status) {
         return;
     }
 
-    uv_tcp_t *client = calloc(1, sizeof(uv_tcp_t));
-    uv_tcp_init(loop, client);
+    uv_tcp_t *client = malloc(sizeof(uv_tcp_t));
+    uv_tcp_init(server->loop, client);
     if (uv_accept(server, (uv_stream_t *)client) == 0) {
         uv_read_start((uv_stream_t *)client, alloc_buffer, echo_read);
 #ifdef USE_TIMER
-        uv_timer_t *timer_handle = calloc(1, sizeof(uv_timer_t));
+        uv_timer_t *timer_handle = malloc(sizeof(uv_timer_t));
         client->data             = timer_handle;
         timer_handle->data       = client;
-        uv_timer_init(loop, timer_handle);
-        uv_timer_start(timer_handle, on_timeout, 10000, 10000);
+        uv_timer_init(server->loop, timer_handle);
+        uv_timer_start(
+            timer_handle, on_timeout, DEFAULT_TIMEOUT, DEFAULT_TIMEOUT);
 #endif
-        uv_tcp_keepalive(client, 1, 10000);
+        uv_tcp_keepalive(client, 1, DEFAULT_TIMEOUT);
     } else {
         // error!
         uv_close((uv_handle_t *)client, on_close);
@@ -108,8 +112,7 @@ void on_new_connection(uv_stream_t *server, int status) {
 }
 
 int main() {
-    loop = uv_default_loop();
-
+    uv_loop_t *loop = uv_default_loop();
     uv_tcp_t server;
     uv_tcp_init(loop, &server);
 

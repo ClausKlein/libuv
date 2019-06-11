@@ -32,7 +32,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <unistd.h>
+#include <unistd.h> // getpid()
 
 /* The value of NUM_SIGNAL_HANDLING_THREADS is not arbitrary; it needs to be a
  * multiple of three for reasons that will become clear when you scroll down.

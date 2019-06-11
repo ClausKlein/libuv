@@ -1,7 +1,6 @@
 # TODO: determine CMAKE_SYSTEM_NAME on OS/390.  Currently assumes "OS/390".
 cmake_minimum_required(VERSION 3.0)
 project(libuv VERSION 1.29.02 LANGUAGES C)
-#TBD enable_testing()
 
 
 # Where to put all the RUNTIME targets when built.  This variable is used to
@@ -399,8 +398,10 @@ target_compile_options(uv_a PRIVATE ${uv_cflags})
 target_include_directories(uv_a PRIVATE include src)
 target_link_libraries(uv_a ${uv_libraries})
 
-include(CTest)
+option(BUILD_TESTING "Enable to build the ctests too." OFF)
 if(BUILD_TESTING)
+  enable_testing()
+
   add_executable(run-benchmarks ${uv_benchmarks_sources})
   target_compile_definitions(run-benchmarks
                              PRIVATE ${uv_defines} USING_UV_SHARED=1)

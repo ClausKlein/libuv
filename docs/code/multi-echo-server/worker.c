@@ -2,7 +2,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-//XXX #include <unistd.h>
+
+#ifndef _WIN32
+#include <unistd.h> // getpid()
+#endif
+
 #include <uv.h>
 
 uv_loop_t *loop;

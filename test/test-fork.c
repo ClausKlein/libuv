@@ -22,7 +22,7 @@
 /* These tests are Unix only. */
 #ifndef _WIN32
 
-#include <unistd.h>
+#include <unistd.h> // getpid()
 #include <sys/wait.h>
 #include <sys/socket.h>
 #include <string.h>
