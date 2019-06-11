@@ -893,6 +893,7 @@ start:
   }
 
   if (n == -1 && !IS_TRANSIENT_WRITE_ERROR(errno, req->send_handle)) {
+    perror(__FUNCTION__);
     err = UV__ERR(errno);
     goto error;
   }

@@ -548,9 +548,11 @@ TASK_LIST_START
   TEST_ENTRY  (tcp_alloc_cb_fail)
 
   TEST_ENTRY  (tcp_ping_pong)
+  //XXX TEST_ENTRY_CUSTOM (tcp_ping_pong, 0, 1, 5000)
   TEST_HELPER (tcp_ping_pong, tcp4_echo_server)
 
   TEST_ENTRY  (tcp_ping_pong_vec)
+  //XXX TEST_ENTRY_CUSTOM (tcp_ping_pong_vec, 0, 1, 5000)
   TEST_HELPER (tcp_ping_pong_vec, tcp4_echo_server)
 
   TEST_ENTRY  (tcp6_ping_pong)

@@ -17,7 +17,7 @@ int main() {
     loop = uv_default_loop();
 
     size_t size = 500;
-    char path[size];
+    char path[500];
     uv_exepath(path, &size);
     strcpy(path + (strlen(path) - strlen("proc-streams")), "test");
 

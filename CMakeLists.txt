@@ -1,17 +1,33 @@
 # TODO: determine CMAKE_SYSTEM_NAME on OS/390.  Currently assumes "OS/390".
 cmake_minimum_required(VERSION 3.0)
-project(libuv)
-enable_testing()
+project(libuv VERSION 1.29.02 LANGUAGES C)
+#TBD enable_testing()
+
+
+# Where to put all the RUNTIME targets when built.  This variable is used to
+# initialize the RUNTIME_OUTPUT_DIRECTORY property on all the targets.
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/bin)
+
 
 if(MSVC)
   list(APPEND uv_cflags /W4)
 elseif(CMAKE_C_COMPILER_ID MATCHES "AppleClang|Clang|GNU")
-  list(APPEND uv_cflags -fvisibility=hidden --std=gnu89)
+  list(APPEND uv_cflags -fvisibility=hidden --std=c99)
   list(APPEND uv_cflags -Wall -Wextra -Wstrict-prototypes)
   list(APPEND uv_cflags -Wno-unused-parameter)
 endif()
 
 set(uv_sources
+    include/uv.h
+    include/uv/tree.h
+    include/uv/errno.h
+    include/uv/version.h
+    include/uv/threadpool.h
+    src/heap-inl.h
+    src/idna.h
+    src/queue.h
+    src/strscpy.h
+    src/uv-common.h
     src/fs-poll.c
     src/idna.c
     src/inet.c
@@ -22,7 +38,37 @@ set(uv_sources
     src/uv-data-getter-setters.c
     src/version.c)
 
+set(uv_benchmarks_sources
+    include/uv.h
+    test/task.h
+    test/runner.h
+    test/benchmark-list.h
+    test/run-benchmarks.c
+    test/runner.c
+    test/blackhole-server.c
+    test/echo-server.c
+    test/benchmark-async-pummel.c
+    test/benchmark-async.c
+    test/benchmark-fs-stat.c
+    test/benchmark-getaddrinfo.c
+    test/benchmark-loop-count.c
+    test/benchmark-million-async.c
+    test/benchmark-million-timers.c
+    test/benchmark-multi-accept.c
+    test/benchmark-ping-pongs.c
+    test/benchmark-pound.c
+    test/benchmark-pump.c
+    test/benchmark-sizes.c
+    test/benchmark-spawn.c
+    test/benchmark-tcp-write-batch.c
+    test/benchmark-thread.c
+    test/benchmark-udp-pummel.c)
+
 set(uv_test_sources
+    include/uv.h
+    test/test-list.h
+    test/task.h
+    test/runner.h
     test/blackhole-server.c
     test/echo-server.c
     test/run-tests.c
@@ -214,6 +260,7 @@ if(WIN32)
        src/win/winsock.c)
   list(APPEND uv_test_libraries ws2_32)
   list(APPEND uv_test_sources src/win/snprintf.c test/runner-win.c)
+  list(APPEND uv_benchmarks_sources src/win/snprintf.c test/runner-win.c test/runner-win.h)
 else()
   list(APPEND uv_defines _FILE_OFFSET_BITS=64 _LARGEFILE_SOURCE)
   if(NOT CMAKE_SYSTEM_NAME STREQUAL "Android")
@@ -240,6 +287,7 @@ else()
        src/unix/tty.c
        src/unix/udp.c)
   list(APPEND uv_test_sources test/runner-unix.c)
+  list(APPEND uv_benchmarks_sources test/runner-unix.c test/runner-unix.h)
 endif()
 
 if(CMAKE_SYSTEM_NAME STREQUAL "AIX")
@@ -351,8 +399,15 @@ target_compile_options(uv_a PRIVATE ${uv_cflags})
 target_include_directories(uv_a PRIVATE include src)
 target_link_libraries(uv_a ${uv_libraries})
 
+include(CTest)
 if(BUILD_TESTING)
-  include(CTest)
+  add_executable(run-benchmarks ${uv_benchmarks_sources})
+  target_compile_definitions(run-benchmarks
+                             PRIVATE ${uv_defines} USING_UV_SHARED=1)
+  target_compile_options(run-benchmarks PRIVATE ${uv_cflags})
+  target_include_directories(run-benchmarks PRIVATE include)
+  target_link_libraries(run-benchmarks uv ${uv_test_libraries})
+
   add_executable(uv_run_tests ${uv_test_sources})
   target_compile_definitions(uv_run_tests
                              PRIVATE ${uv_defines} USING_UV_SHARED=1)
@@ -392,3 +447,6 @@ if(UNIX)
   install(TARGETS uv LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR})
   install(TARGETS uv_a ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})
 endif()
+
+add_subdirectory(docs)
+

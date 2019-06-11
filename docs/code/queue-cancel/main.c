@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <unistd.h>
+#include <unistd.h> // Attention: sleep() used! CK
 
 #include <uv.h>
 
@@ -20,7 +20,7 @@ void fib(uv_work_t *req) {
     if (random() % 2)
         sleep(1);
     else
-        sleep(3);
+        sleep(2);
     long fib = fib_(n);
     fprintf(stderr, "%dth fibonacci is %lu\n", n, fib);
 }

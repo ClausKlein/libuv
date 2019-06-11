@@ -1,13 +1,13 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <unistd.h>
+#include <unistd.h> // Attention: sleep() used! CK
 
 #include <uv.h>
 
 #define FIB_UNTIL 25
 uv_loop_t *loop;
 
-long fib_(long t) {
+size_t fib_(size_t t) {
     if (t == 0 || t == 1)
         return 1;
     else
@@ -15,25 +15,25 @@ long fib_(long t) {
 }
 
 void fib(uv_work_t *req) {
-    int n = *(int *) req->data;
+    size_t n = *(size_t *) req->data;
     if (random() % 2)
         sleep(1);
     else
-        sleep(3);
-    long fib = fib_(n);
-    fprintf(stderr, "%dth fibonacci is %lu\n", n, fib);
+        sleep(2);
+    size_t fib = fib_(n);
+    fprintf(stderr, "%zuth fibonacci is %zu\n", n, fib);
 }
 
 void after_fib(uv_work_t *req, int status) {
-    fprintf(stderr, "Done calculating %dth fibonacci\n", *(int *) req->data);
+    fprintf(stderr, "Done calculating %zuth fibonacci\n", *(size_t *) req->data);
 }
 
 int main() {
     loop = uv_default_loop();
 
-    int data[FIB_UNTIL];
+    size_t data[FIB_UNTIL];
     uv_work_t req[FIB_UNTIL];
-    int i;
+    size_t i;
     for (i = 0; i < FIB_UNTIL; i++) {
         data[i] = i;
         req[i].data = (void *) &data[i];
