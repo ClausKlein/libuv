@@ -188,6 +188,7 @@ extern void notify_parent_process(void);
 
 /* Fully close a loop */
 static void close_walk_cb(uv_handle_t* handle, void* arg) {
+  ASSERT(arg == NULL);
   if (!uv_is_closing(handle))
     uv_close(handle, NULL);
 }

@@ -751,7 +751,11 @@ TASK_LIST_START
   TEST_ENTRY  (loop_handles)
   TEST_ENTRY  (walk_handles)
 
-  TEST_ENTRY  (watcher_cross_stop)
+#ifdef _WIN32
+    TEST_ENTRY_CUSTOM(watcher_cross_stop, 0, 0, 33000)
+#else
+    TEST_ENTRY(watcher_cross_stop)
+#endif
 
   TEST_ENTRY  (active)
 

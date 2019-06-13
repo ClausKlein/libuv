@@ -10,9 +10,9 @@
 
 
 typedef struct {
-    uv_timer_t *timer_handle;
-    uv_write_t req;
+    uv_write_t req; // ATTENTION: must be first! CK
     uv_buf_t buf;
+    uv_timer_t *timer_handle;
 } write_req_t;
 
 void free_write_req(uv_write_t *req) {
@@ -33,7 +33,6 @@ void on_close(uv_handle_t *handle) {
         uv_timer_t *timer_handle = handle->data;
         if ((timer_handle->type == UV_TIMER)
             && (uv_is_active((uv_handle_t *)timer_handle))) {
-            uv_timer_stop(timer_handle);
             uv_close((uv_handle_t *)timer_handle, on_close);
         }
         timer_handle->data = NULL;
@@ -78,8 +77,9 @@ void echo_read(uv_stream_t *client, ssize_t nread, const uv_buf_t *buf) {
         return;
 
     } else if (nread < 0) {
-        if (nread != UV_EOF)
+        if (nread != UV_EOF) {
             fprintf(stderr, "Read error %s\n", uv_err_name(nread));
+        }
         uv_close((uv_handle_t *)client, on_close);
     }
 

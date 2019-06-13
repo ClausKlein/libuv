@@ -51,6 +51,7 @@ static uv_write_t write_reqs[WRITES];
 
 
 static void alloc_cb(uv_handle_t* handle, size_t size, uv_buf_t* buf) {
+  ASSERT(handle != NULL);
   buf->base = malloc(size);
   buf->len = size;
 }
@@ -102,7 +103,7 @@ static void write_cb(uv_write_t* req, int status) {
 
   if (status) {
     fprintf(stderr, "uv_write error: %s\n", uv_strerror(status));
-    ASSERT(0);
+    ASSERT(!status);
   }
 
   bytes_sent_done += CHUNKS_PER_WRITE * CHUNK_SIZE;

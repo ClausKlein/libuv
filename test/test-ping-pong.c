@@ -39,11 +39,8 @@ static int completed_pingers = 0;
 #define BUFSIZE 1024
 
 #define USE_ORIG_CODE_ONLY
-#ifdef USE_ORIG_CODE_ONLY
 static char PING[] = "PING\n";
-#else
-static char PING[] = "PING\nQS\n"; // NOTE: Close Socket! CK
-#endif
+//XXX static char PING[] = "PING\nQS\n"; // NOTE: Close Socket! CK
 
 static int pinger_on_connect_count;
 static uv_loop_t *loop;
@@ -63,6 +60,7 @@ typedef struct {
 
 
 static void alloc_cb(uv_handle_t *handle, size_t size, uv_buf_t *buf) {
+    ASSERT(handle);
     buf->base = malloc(size);
     buf->len  = size;
 }
@@ -187,18 +185,18 @@ static void pinger_on_connect(uv_connect_t *req, int status) {
     ASSERT(1 == uv_is_writable(req->handle));
     ASSERT(0 == uv_is_closing((uv_handle_t *)req->handle));
 
-    pinger_write_ping(pinger);
-
-#ifdef USE_ORIG_CODE_ONLY
-    uv_read_start((uv_stream_t *)(req->handle), alloc_cb, pinger_read_cb);
-#else
+#ifndef USE_ORIG_CODE_ONLY
     static uv_timer_t timer_handle;
     timer_handle.data = pinger;
-    int r             = uv_timer_init(loop, &timer_handle);
+    int r = uv_timer_init(loop, &timer_handle);
     ASSERT(!r);
     r = uv_timer_start(&timer_handle, on_timeout, 20000, 0);
     ASSERT(!r);
+#else
+    pinger_write_ping(pinger);
 #endif
+
+    uv_read_start((uv_stream_t *)(req->handle), alloc_cb, pinger_read_cb);
 }
 
 

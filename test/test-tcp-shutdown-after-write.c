@@ -83,6 +83,9 @@ static void connect_cb(uv_connect_t* req, int status) {
   ASSERT(status == 0);
   connect_cb_called++;
 
+  r = uv_timer_start(&timer, timer_cb, 125, 0);
+  ASSERT(r == 0);
+
   r = uv_read_start((uv_stream_t*)&conn, alloc_cb, read_cb);
   ASSERT(r == 0);
 }
@@ -110,9 +113,6 @@ TEST_IMPL(tcp_shutdown_after_write) {
   loop = uv_default_loop();
 
   r = uv_timer_init(loop, &timer);
-  ASSERT(r == 0);
-
-  r = uv_timer_start(&timer, timer_cb, 125, 0);
   ASSERT(r == 0);
 
   r = uv_tcp_init(loop, &conn);

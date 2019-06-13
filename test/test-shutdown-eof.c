@@ -40,6 +40,7 @@ static int called_timer_cb;
 
 
 static void alloc_cb(uv_handle_t* handle, size_t size, uv_buf_t* buf) {
+  ASSERT(handle);
   buf->base = malloc(size);
   buf->len = size;
 }
@@ -83,10 +84,13 @@ static void shutdown_cb(uv_shutdown_t *req, int status) {
   called_shutdown_cb++;
 }
 
+static void timer_cb(uv_timer_t* handle);
 
 static void connect_cb(uv_connect_t *req, int status) {
   ASSERT(status == 0);
   ASSERT(req == &connect_req);
+
+  uv_timer_start(&timer, timer_cb, 100, 0);
 
   /* Start reading from our connection so we can receive the EOF.  */
   uv_read_start((uv_stream_t*)&tcp, alloc_cb, read_cb);
@@ -154,7 +158,6 @@ TEST_IMPL(shutdown_eof) {
   r = uv_timer_init(uv_default_loop(), &timer);
   ASSERT(r == 0);
 
-  uv_timer_start(&timer, timer_cb, 100, 0);
 
   ASSERT(0 == uv_ip4_addr("127.0.0.1", TEST_PORT, &server_addr));
   r = uv_tcp_init(uv_default_loop(), &tcp);

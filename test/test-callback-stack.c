@@ -49,10 +49,12 @@ static void alloc_cb(uv_handle_t* handle, size_t size, uv_buf_t* buf) {
   buf->len = size;
   buf->base = malloc(size);
   ASSERT(buf->base != NULL);
+  ASSERT(handle);
 }
 
 
 static void close_cb(uv_handle_t* handle) {
+  ASSERT(handle);
   ASSERT(nested == 0 && "close_cb must be called from a fresh stack");
 
   close_cb_called++;
@@ -60,6 +62,7 @@ static void close_cb(uv_handle_t* handle) {
 
 
 static void shutdown_cb(uv_shutdown_t* req, int status) {
+  ASSERT(req);
   ASSERT(status == 0);
   ASSERT(nested == 0 && "shutdown_cb must be called from a fresh stack");
 
@@ -125,6 +128,7 @@ static void timer_cb(uv_timer_t* handle) {
 static void write_cb(uv_write_t* req, int status) {
   int r;
 
+  ASSERT(req);
   ASSERT(status == 0);
   ASSERT(nested == 0 && "write_cb must be called from a fresh stack");
 

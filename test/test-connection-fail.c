@@ -37,11 +37,13 @@ static int timer_cb_calls;
 
 
 static void on_close(uv_handle_t* handle) {
+  ASSERT(handle);
   close_cb_calls++;
 }
 
 
 static void timer_close_cb(uv_handle_t* handle) {
+  ASSERT(handle);
   timer_close_cb_calls++;
 }
 
@@ -76,6 +78,7 @@ static void on_connect_with_close(uv_connect_t *req, int status) {
 
 
 static void on_connect_without_close(uv_connect_t *req, int status) {
+  ASSERT(req);
   ASSERT(status == UV_ECONNREFUSED);
   connect_cb_calls++;
 

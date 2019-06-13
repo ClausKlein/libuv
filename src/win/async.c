@@ -29,6 +29,7 @@
 
 
 void uv_async_endgame(uv_loop_t* loop, uv_async_t* handle) {
+  assert(loop == handle->loop);
   if (handle->flags & UV_HANDLE_CLOSING &&
       !handle->async_sent) {
     assert(!(handle->flags & UV_HANDLE_CLOSED));
